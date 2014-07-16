@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-
 package org.julext;
-
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
