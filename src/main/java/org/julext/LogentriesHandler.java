@@ -17,6 +17,7 @@ package org.julext;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.text.MessageFormat;
@@ -34,7 +35,7 @@ import java.util.logging.LogRecord;
 /**
  * <code>LogentriesHandler</code>: A handler for writing formatted records to a
  * logentries.com. This handler uses Token-based input.
- *
+ * 
  * @author Björn Raupach (raupach@me.com)
  */
 public final class LogentriesHandler extends Handler {
@@ -43,6 +44,8 @@ public final class LogentriesHandler extends Handler {
     private int port;
     private byte[] token;
     private SocketChannel channel;
+    private final byte space = 0x020;
+    private final byte newline = 0x0a;
     private final ByteBuffer buffer;
 
     public LogentriesHandler() {
@@ -87,17 +90,23 @@ public final class LogentriesHandler extends Handler {
             reportError("Error while formatting.", e, FORMAT_FAILURE);
             return;
         }
-        buffer.clear();
-        buffer.put(token);
-        buffer.put((byte)0x020);
-        buffer.put(msg.getBytes());
-        buffer.put((byte)0x0a);
+        try {
+            buffer.clear();
+            buffer.put(token);
+            buffer.put(space);
+            buffer.put(msg.getBytes());
+            buffer.put(newline);
+        } catch (BufferOverflowException e) {
+            reportError("Buffer capacity exceeded", e, WRITE_FAILURE);
+                return;
+        }
         buffer.flip();
         while (buffer.hasRemaining()) {
             try {
                 channel.write(buffer);
             } catch (IOException e) {
                 reportError("Error while writing channel.", e, WRITE_FAILURE);
+                return;
             }
         }
     }
