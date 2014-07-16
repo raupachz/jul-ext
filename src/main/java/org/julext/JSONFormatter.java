@@ -19,7 +19,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Formatter;
-import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 /**
@@ -30,6 +29,7 @@ import java.util.logging.LogRecord;
 public class JSONFormatter extends Formatter {
 
     public static final String encoding = "utf8";
+    public static final String newline = "\r\n";
     public static final int initialCapacity = 256;
 
     private static final char openBrace = '{';
@@ -147,7 +147,7 @@ public class JSONFormatter extends Formatter {
         sb.append(comma);
         append(sb, message, record.getMessage());
         sb.append(closeBrace);
-
+        sb.append(newline);
         return sb.toString();
     }
 
