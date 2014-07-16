@@ -35,25 +35,24 @@ import java.util.logging.LogRecord;
 /**
  * <code>LogentriesHandler</code>: A handler for writing formatted records to a
  * logentries.com. This handler uses Token-based input.
- * 
+ *
  * @author Björn Raupach (raupach@me.com)
  */
 public final class LogentriesHandler extends Handler {
-    
+
     private String host;
     private int port;
     private byte[] token;
     private SocketChannel channel;
+    private ByteBuffer buffer;
+    private final byte[] newline = {0x0D, 0x0A};
     private final byte space = 0x020;
-    private final byte newline = 0x0a;
-    private final ByteBuffer buffer;
 
     public LogentriesHandler() {
-        buffer = ByteBuffer.allocate(1024);
         configure();
         connect();
     }
-    
+
     public String getHost() {
         return host;
     }
@@ -69,7 +68,7 @@ public final class LogentriesHandler extends Handler {
     public void setPort(int port) {
         this.port = port;
     }
-    
+
     public byte[] getToken() {
         return token;
     }
@@ -97,8 +96,8 @@ public final class LogentriesHandler extends Handler {
             buffer.put(msg.getBytes());
             buffer.put(newline);
         } catch (BufferOverflowException e) {
-            reportError("Buffer capacity exceeded", e, WRITE_FAILURE);
-                return;
+            reportError("Buffer exceepds capacity", e, WRITE_FAILURE);
+            return;
         }
         buffer.flip();
         while (buffer.hasRemaining()) {
@@ -112,7 +111,8 @@ public final class LogentriesHandler extends Handler {
     }
 
     @Override
-    public void flush() {}
+    public void flush() {
+    }
 
     @Override
     public void close() throws SecurityException {
@@ -124,27 +124,27 @@ public final class LogentriesHandler extends Handler {
             }
         }
     }
-    
+
     void configure() {
         String cname = getClass().getName();
-        setLevel(getLevelProperty(cname +".level", Level.INFO));
-        setFormatter(getFormatterProperty(cname +".formatter", new OneLineFormatter()));
+        setLevel(getLevelProperty(cname + ".level", Level.INFO));
+        setFormatter(getFormatterProperty(cname + ".formatter", new JSONFormatter()));
         setHost(getStringProperty(cname + ".host", "data.logentries.com"));
         setPort(getIntProperty(cname + ".port", 514));
         setToken(getBytesProperty(cname + ".token", ""));
     }
 
     void connect() {
+        buffer = ByteBuffer.allocate(4096);
         try {
             channel = SocketChannel.open();
             channel.connect(new InetSocketAddress(host, port));
         } catch (IOException e) {
-            reportError(MessageFormat.format("Error connection to host ''{0}:{1}''", host, port) , e, OPEN_FAILURE);
+            reportError(MessageFormat.format("Error connection to host ''{0}:{1}''", host, port), e, OPEN_FAILURE);
         }
     }
-    
+
     // -- These methods are private in LogManager
-    
     Level getLevelProperty(String name, Level defaultValue) {
         LogManager manager = LogManager.getLogManager();
         String val = manager.getProperty(name);
@@ -154,21 +154,22 @@ public final class LogentriesHandler extends Handler {
         Level l = Level.parse(val.trim());
         return l != null ? l : defaultValue;
     }
-    
+
     Formatter getFormatterProperty(String name, Formatter defaultValue) {
         LogManager manager = LogManager.getLogManager();
         String val = manager.getProperty(name);
         try {
             if (val != null) {
-                Class<?> clz = ClassLoader.getSystemClassLoader().loadClass(val);
+                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                Class<?> clz = cl.loadClass(val);
                 return (Formatter) clz.newInstance();
             }
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-            reportError(MessageFormat.format("Error reading property ''{0}''", name) , e, GENERIC_FAILURE);
+            reportError(MessageFormat.format("Error reading property ''{0}''", name), e, GENERIC_FAILURE);
         }
         return defaultValue;
     }
-    
+
     String getStringProperty(String name, String defaultValue) {
         LogManager manager = LogManager.getLogManager();
         String val = manager.getProperty(name);
@@ -177,11 +178,11 @@ public final class LogentriesHandler extends Handler {
         }
         return val.trim();
     }
-    
+
     byte[] getBytesProperty(String name, String defaultValue) {
         return getStringProperty(name, defaultValue).getBytes();
     }
-    
+
     int getIntProperty(String name, int defaultValue) {
         LogManager manager = LogManager.getLogManager();
         String val = manager.getProperty(name);
@@ -191,7 +192,7 @@ public final class LogentriesHandler extends Handler {
         try {
             return Integer.parseInt(val.trim());
         } catch (NumberFormatException e) {
-            reportError(MessageFormat.format("Error reading property ''{0}''", name) , e, GENERIC_FAILURE);
+            reportError(MessageFormat.format("Error reading property ''{0}''", name), e, GENERIC_FAILURE);
             return defaultValue;
         }
     }
