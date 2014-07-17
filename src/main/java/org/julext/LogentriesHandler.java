@@ -140,7 +140,7 @@ public final class LogentriesHandler extends Handler {
             channel = SocketChannel.open();
             channel.connect(new InetSocketAddress(host, port));
         } catch (IOException e) {
-            reportError(MessageFormat.format("Error connection to host ''{0}:{1}''", host, port), e, OPEN_FAILURE);
+            reportError(MessageFormat.format("Error connection to host {0}:{1}", host, port), e, OPEN_FAILURE);
         }
     }
 
