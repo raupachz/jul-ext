@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import static java.util.logging.ErrorManager.CLOSE_FAILURE;
 import static java.util.logging.ErrorManager.FORMAT_FAILURE;
@@ -93,7 +94,7 @@ public final class LogentriesHandler extends Handler {
             buffer.clear();
             buffer.put(token);
             buffer.put(space);
-            buffer.put(msg.getBytes());
+            buffer.put(msg.getBytes(Charset.forName("UTF-8")));
             buffer.put(newline);
         } catch (BufferOverflowException e) {
             reportError("Buffer exceepds capacity", e, WRITE_FAILURE);
