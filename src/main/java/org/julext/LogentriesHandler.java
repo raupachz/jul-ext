@@ -44,6 +44,7 @@ public final class LogentriesHandler extends Handler {
     private String host;
     private int port;
     private byte[] token;
+    private boolean open;
     private SocketChannel channel;
     private ByteBuffer buffer;
     private final byte[] newline = {0x0D, 0x0A};
@@ -52,6 +53,7 @@ public final class LogentriesHandler extends Handler {
     public LogentriesHandler() {
         configure();
         connect();
+        buffer = ByteBuffer.allocate(4096);
     }
 
     public String getHost() {
@@ -80,50 +82,66 @@ public final class LogentriesHandler extends Handler {
 
     @Override
     public void publish(LogRecord record) {
-        if (!isLoggable(record)) {
-            return;
+        if (open && isLoggable(record)) {
+            String msg = formatMessage(record);
+            if (!msg.isEmpty()) {
+                boolean filled = fillAndFlip(msg);
+                if (filled) {
+                    boolean drained = drain();
+                    if (!drained) {
+                        System.err.println("java.util.logging.ErrorManager: Sending to logentries.com failed. Trying to reconnect once.");
+                        connect();
+                        if (open) {
+                            filled = fillAndFlip(msg);
+                            if (filled) {
+                                drained = drain();
+                                if (!drained) {
+                                    System.err.println("java.util.logging.ErrorManager: Unable to reconnect. Shutting handler down.");
+                                    close();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        String msg;
+    }
+
+    String formatMessage(LogRecord record) {
+        String msg = "";
         try {
             msg = getFormatter().format(record);
         } catch (Exception e) {
             reportError("Error while formatting.", e, FORMAT_FAILURE);
-            return;
         }
+        return msg;
+    }
+
+    boolean fillAndFlip(String formattedMessage) {
         try {
             buffer.clear();
             buffer.put(token);
             buffer.put(space);
-            buffer.put(msg.getBytes(Charset.forName("UTF-8")));
+            buffer.put(formattedMessage.getBytes(Charset.forName("UTF-8")));
             buffer.put(newline);
         } catch (BufferOverflowException e) {
             reportError("Buffer exceepds capacity", e, WRITE_FAILURE);
-            return;
+            return false;
         }
         buffer.flip();
+        return true;
+    }
+
+    boolean drain() {
         while (buffer.hasRemaining()) {
             try {
                 channel.write(buffer);
             } catch (IOException e) {
                 reportError("Error while writing channel.", e, WRITE_FAILURE);
-                return;
+                return false;
             }
         }
-    }
-
-    @Override
-    public void flush() {
-    }
-
-    @Override
-    public void close() throws SecurityException {
-        if (channel != null) {
-            try {
-                channel.close();
-            } catch (IOException e) {
-                reportError("Error while closing channel.", e, CLOSE_FAILURE);
-            }
-        }
+        return true;
     }
 
     void configure() {
@@ -136,16 +154,34 @@ public final class LogentriesHandler extends Handler {
     }
 
     void connect() {
-        buffer = ByteBuffer.allocate(4096);
         try {
             channel = SocketChannel.open();
             channel.connect(new InetSocketAddress(host, port));
+            open = true;
         } catch (IOException e) {
-            reportError(MessageFormat.format("Error connection to host {0}:{1}", host, port), e, OPEN_FAILURE);
+            open = false; 
+            reportError(MessageFormat.format("Error connection to host: {0}:{1}", host, port), e, OPEN_FAILURE);
         }
     }
+    
+    @Override
+    public void flush() {}
 
+    @Override
+    public void close() throws SecurityException {
+        open = false;
+        buffer = null;
+        if (channel != null) {
+            try {
+                channel.close();
+            } catch (IOException e) {
+                reportError("Error while closing channel.", e, CLOSE_FAILURE);
+            }
+        }
+    }
+    
     // -- These methods are private in LogManager
+    
     Level getLevelProperty(String name, Level defaultValue) {
         LogManager manager = LogManager.getLogManager();
         String val = manager.getProperty(name);
