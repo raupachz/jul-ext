@@ -47,7 +47,7 @@ public class JSONFormatter extends Formatter {
     private static final String method = "method";
     private static final String thread = "thread";
     private static final String message = "message";
-    private static final String param = "param";
+    private static final String params = "params";
 
     private static final DateFormat iso8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
@@ -129,7 +129,7 @@ public class JSONFormatter extends Formatter {
         StringBuilder sb = new StringBuilder(initialCapacity);
 
         sb.append(openBrace);
-        append(sb, date, record.getMillis());
+        append(sb, date, new Date(record.getMillis()));
         sb.append(comma);
         append(sb, millis, record.getMillis());
         sb.append(comma);
