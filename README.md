@@ -16,17 +16,17 @@ you found yourself stuck while using java.utils.logging (JUL). Logentries provid
 [log4j](http://logging.apache.org/log4j/1.2/ "log4j") and [logback](http://logback.qos.ch "logback"),
 but does not support JUL.
 
-log-ext provides a LogentriesHandler that works with JUL. All you need is your [token](https://logentries.com/doc/input-token/ "token")!
-Here is an example logging.properties:
+log-ext provides a LogentriesHandler that works with JUL. All you need is your [token](https://logentries.com/doc/input-token/ "token").
 
-  org.julext.LogentriesHandler.token = 28d5f881-aaaa-44e5-xxxx-201b5c7982dc
+Here is an example logging.properties:
+```
+org.julext.LogentriesHandler.token = 28d5f881-aaaa-44e5-xxxx-201b5c7982dc
+```
 
 LogentriesHandler with Apache Tomcat
 ------------------------------------
-The main reason for LogentriesHandler is in combination with [Apache Tomcat](http://tomcat.apache.org "Apache Tomcat").
-As you probably know, Apache Tomcat uses its own LogManager implementation called [JULI](http://tomcat.apache.org/tomcat-7.0-doc/logging.html "JULI").
-
-Its pretty straightforward to send your Web Applications logs to Logentries.
+The main reason for LogentriesHandler is in combination with [Apache Tomcat](http://tomcat.apache.org "Apache Tomcat"). Its pretty straightforward to send your Web Applications logs to Logentries.
+As you certainly know, Apache Tomcat uses its own LogManager implementation called [JULI](http://tomcat.apache.org/tomcat-7.0-doc/logging.html "JULI").
 
 First of all you need to add jul-ext.jar to the System class loader. Otherwise you
 end up with ClassNotFoundException.
@@ -41,8 +41,7 @@ CLASSPATH="$CATALINA_HOME/bin/julext-1.0-SNAPSHOT.jar"
 
 Thats it! LogentriesHandler is now loaded by Apache Tomcat.
 
-Lets edit ``$CATALINA_HOME/conf/logging.properties`` and do some logging.
-
+Now edit ``$CATALINA_HOME/conf/logging.properties`` and do some logging.
 ```
 1mywebapp.org.julext.LogentriesHandler.level = ALL
 1mywebapp.org.julext.LogentriesHandler.token = 28d5f881-aaaa-44e5-xxxx-201b5c7982dc
@@ -50,7 +49,6 @@ Lets edit ``$CATALINA_HOME/conf/logging.properties`` and do some logging.
 ```
 
 Don't forget to add create the Handler with the handler directive.
-
 ```
 handlers = [...], 1mywebapp.org.julext.LogentriesHandler
 ```
