@@ -201,7 +201,7 @@ public final class LogentriesHandler extends Handler {
                 Class<?> clz = cl.loadClass(val);
                 return (Formatter) clz.newInstance();
             }
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+        } catch (ReflectiveOperationException e) {
             reportError(MessageFormat.format("Error reading property ''{0}''", name), e, GENERIC_FAILURE);
         }
         return defaultValue;
