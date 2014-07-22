@@ -34,21 +34,26 @@ end up with ClassNotFoundException.
 Copy jul-ext.jar to $CATALINA_HOME/bin and edit the file setenv.sh. Just create
 setenv.sh if it does not exist.
 
-  #!/bin/sh
-  CLASSPATH="$CATALINA_HOME/bin/julext-1.0-SNAPSHOT.jar"
+```
+#!/bin/sh
+CLASSPATH="$CATALINA_HOME/bin/julext-1.0-SNAPSHOT.jar"
+```
 
 Thats it! LogentriesHandler is now loaded by Apache Tomcat.
 
 Lets edit ``$CATALINA_HOME/conf/logging.properties`` and do some logging.
 
-  1mywebapp.org.julext.LogentriesHandler.level = ALL
-  1mywebapp.org.julext.LogentriesHandler.token = 28d5f881-aaaa-44e5-xxxx-201b5c7982dc
-  1mywebapp.org.julext.LogentriesHandler.formatter = org.apache.juli.OneLineFormatter
+```
+1mywebapp.org.julext.LogentriesHandler.level = ALL
+1mywebapp.org.julext.LogentriesHandler.token = 28d5f881-aaaa-44e5-xxxx-201b5c7982dc
+1mywebapp.org.julext.LogentriesHandler.formatter = org.apache.juli.OneLineFormatter
+```
 
 Don't forget to add create the Handler with the handler directive.
 
-  handlers = [...], 1mywebapp.org.julext.LogentriesHandler
-
+```
+handlers = [...], 1mywebapp.org.julext.LogentriesHandler
+```
 
 Further reading
 ---------------
