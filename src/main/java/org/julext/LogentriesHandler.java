@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.NotYetConnectedException;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
@@ -136,7 +137,7 @@ public final class LogentriesHandler extends Handler {
         while (buffer.hasRemaining()) {
             try {
                 channel.write(buffer);
-            } catch (IOException e) {
+            } catch (Exception  e) {
                 reportError("Error while writing channel.", e, WRITE_FAILURE);
                 return false;
             }
