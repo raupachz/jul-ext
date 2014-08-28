@@ -36,7 +36,7 @@ import java.util.logging.LogRecord;
 
 /**
  * <code>LogentriesHandler</code>: A handler for writing formatted records to a
- * logentries.com. This handler uses Token-based input.
+ * logentries.com. This handler uses the Token-based input.
  *
  * @author Björn Raupach (raupach@me.com)
  */
@@ -54,7 +54,7 @@ public final class LogentriesHandler extends Handler {
     public LogentriesHandler() {
         configure();
         connect();
-        buffer = ByteBuffer.allocate(4096);
+        buffer = ByteBuffer.allocate(1024);
     }
 
     public String getHost() {
