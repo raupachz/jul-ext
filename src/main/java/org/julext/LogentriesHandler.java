@@ -128,7 +128,7 @@ public final class LogentriesHandler extends Handler {
             buffer.put(formattedMessage.getBytes(Charset.forName("UTF-8")));
             buffer.put(newline);
         } catch (BufferOverflowException e) {
-            reportError("Buffer exceepds capacity", e, WRITE_FAILURE);
+            reportError("Buffer exceeds capacity", e, WRITE_FAILURE);
             return false;
         }
         buffer.flip();
