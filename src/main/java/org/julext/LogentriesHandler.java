@@ -17,9 +17,9 @@ package org.julext;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-import java.nio.channels.NotYetConnectedException;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
@@ -112,6 +112,8 @@ public final class LogentriesHandler extends Handler {
         String msg = "";
         try {
             msg = getFormatter().format(record);
+            // replace line separators with unicode equivalent
+            msg = msg.replace(System.lineSeparator(), "\u2028");
         } catch (Exception e) {
             reportError("Error while formatting.", e, FORMAT_FAILURE);
         }
@@ -157,6 +159,7 @@ public final class LogentriesHandler extends Handler {
     void connect() {
         try {
             channel = SocketChannel.open();
+            channel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
             channel.connect(new InetSocketAddress(host, port));
             open = true;
         } catch (IOException e) {
