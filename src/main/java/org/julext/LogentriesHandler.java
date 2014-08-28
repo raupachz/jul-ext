@@ -82,7 +82,7 @@ public final class LogentriesHandler extends Handler {
     }
 
     @Override
-    public void publish(LogRecord record) {
+    public synchronized void publish(LogRecord record) {
         if (open && isLoggable(record)) {
             String msg = formatMessage(record);
             if (!msg.isEmpty()) {
